@@ -45,12 +45,10 @@ def collect_sectors_and_industries(companies_json):
         if industry is not None:
             industry_per_company[company] = industry
 
-        if sector not in sectors:
-            if sector is not None:
-                sectors.append(sector)
-        if industry not in industries:
-            if industry is not None:
-                industries.append(industry)
+        if sector not in sectors and sector is not None:
+            sectors.append(sector)
+        if industry not in industries and industry is not None:
+            industries.append(industry)
 
     with open ('sectors.json', 'w') as json1:
         json.dump(sorted(sectors), json1)
