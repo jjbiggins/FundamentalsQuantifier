@@ -192,11 +192,11 @@ app.layout = html.Div(
     Output(component_id='introduction', component_property='children'),
     [Input(component_id='companies', component_property='value')])
 def introduction_text_field(companies):
-    if not companies:
-        return dcc.Markdown(introduction_text,
-                            style={"color": "black"})
-    else:
-        return None
+    return (
+        None
+        if companies
+        else dcc.Markdown(introduction_text, style={"color": "black"})
+    )
 
 
 @app.callback(
@@ -222,13 +222,13 @@ def show_matching_companies(sectors, industries):
     else:
         sector_and_industry_companies = list(set(industry_companies).intersection(sector_companies))
 
-    new_company_list = []
-
-    for company in sector_and_industry_companies:
-        new_company_list.append({'label': str(company_list[company] + ' (' + company + ')'),
-                                 'value': company})
-
-    return new_company_list
+    return [
+        {
+            'label': str(company_list[company] + ' (' + company + ')'),
+            'value': company,
+        }
+        for company in sector_and_industry_companies
+    ]
 
 
 @app.callback(
@@ -239,10 +239,10 @@ def collect_company_profiles(companies, api_key):
     if not companies or companies is None:
         return None
 
-    company_profiles = {}
-    for company in companies:
-        company_profiles[company] = fa.profile(company, api_key).to_dict()
-
+    company_profiles = {
+        company: fa.profile(company, api_key).to_dict()
+        for company in companies
+    }
     return json.dumps(company_profiles)
 
 
@@ -259,13 +259,16 @@ def display_company_profiles(companies, company_profile_data):
 
     for company in data_dump:
         df = pd.DataFrame(data_dump[company]['profile'], index=[company]).T
-        profiles.append(html.Br())
-        profiles.append(html.H5([df.loc['companyName'][0]]))
-        profiles.append(html.Div(['Sector: ' + df.loc['sector'][0]]))
-        profiles.append(html.Div(['Industry: ' + df.loc['industry'][0]]))
-        profiles.append(html.Br())
-        profiles.append(html.Div([df.loc['description'][0]]))
-
+        profiles.extend(
+            (
+                html.Br(),
+                html.H5([df.loc['companyName'][0]]),
+                html.Div(['Sector: ' + df.loc['sector'][0]]),
+                html.Div(['Industry: ' + df.loc['industry'][0]]),
+                html.Br(),
+                html.Div([df.loc['description'][0]]),
+            )
+        )
     return profiles
 
 
@@ -328,10 +331,10 @@ def collect_key_metrics_data(companies, period, key_metrics, api_key):
     if (not companies or companies is None) or key_metrics is None:
         return None
 
-    key_metrics_data = {}
-    for company in companies:
-        key_metrics_data[company] = fa.key_metrics(company, api_key, period=period).to_dict()
-
+    key_metrics_data = {
+        company: fa.key_metrics(company, api_key, period=period).to_dict()
+        for company in companies
+    }
     return json.dumps(key_metrics_data)
 
 
@@ -360,17 +363,21 @@ def display_key_metrics_graph(companies, data_type, key_metrics_data,
             traces.append(scatter)
 
         graph = dcc.Graph(
-            id='graph-{}'.format(key),
-            figure={'data': traces,
-                    'layout': {
-                        'height': 300,
-                        'xaxis': {
-                            'type': 'category',
-                            'categoryorder': 'category ascending'},
-                        'yaxis': {
-                            'type': data_type},
-                        'title': title}},
-            config={'displayModeBar': False})
+            id=f'graph-{key}',
+            figure={
+                'data': traces,
+                'layout': {
+                    'height': 300,
+                    'xaxis': {
+                        'type': 'category',
+                        'categoryorder': 'category ascending',
+                    },
+                    'yaxis': {'type': data_type},
+                    'title': title,
+                },
+            },
+            config={'displayModeBar': False},
+        )
 
         graphs.append(graph)
 
@@ -386,10 +393,10 @@ def collect_ratios_data(companies, financial_ratios, api_key):
     if (not companies or companies is None) or financial_ratios is None:
         return None
 
-    ratios_data = {}
-    for company in companies:
-        ratios_data[company] = fa.financial_ratios(company, api_key).to_dict()
-
+    ratios_data = {
+        company: fa.financial_ratios(company, api_key).to_dict()
+        for company in companies
+    }
     return json.dumps(ratios_data)
 
 
@@ -418,17 +425,21 @@ def display_ratios_graphs(companies, data_type, ratios_data,
             traces.append(scatter)
 
         graph = dcc.Graph(
-            id='graph-{}'.format(ratio),
-            figure={'data': traces,
-                    'layout': {
-                        'height': 300,
-                        'xaxis': {
-                            'type': 'category',
-                            'categoryorder': 'category ascending'},
-                        'yaxis': {
-                            'type': data_type},
-                        'title': title}},
-            config={'displayModeBar': False})
+            id=f'graph-{ratio}',
+            figure={
+                'data': traces,
+                'layout': {
+                    'height': 300,
+                    'xaxis': {
+                        'type': 'category',
+                        'categoryorder': 'category ascending',
+                    },
+                    'yaxis': {'type': data_type},
+                    'title': title,
+                },
+            },
+            config={'displayModeBar': False},
+        )
 
         graphs.append(graph)
 
@@ -445,10 +456,12 @@ def collect_balance_sheet_statement_data(companies, period, balance_sheet_statem
     if (not companies or companies is None) or balance_sheet_statement is None:
         return None
 
-    balance_sheet_statement_data = {}
-    for company in companies:
-        balance_sheet_statement_data[company] = fa.balance_sheet_statement(company, api_key, period=period).to_dict()
-
+    balance_sheet_statement_data = {
+        company: fa.balance_sheet_statement(
+            company, api_key, period=period
+        ).to_dict()
+        for company in companies
+    }
     return json.dumps(balance_sheet_statement_data)
 
 
@@ -475,17 +488,21 @@ def display_balance_sheet_statement_graphs(companies, data_type, balance_sheet_d
             traces.append(scatter)
 
         graph = dcc.Graph(
-            id='graph-{}'.format(item),
-            figure={'data': traces,
-                    'layout': {
-                        'height': 300,
-                        'xaxis': {
-                            'type': 'category',
-                            'categoryorder': 'category ascending'},
-                        'yaxis': {
-                            'type': data_type},
-                        'title': item}},
-            config={'displayModeBar': False})
+            id=f'graph-{item}',
+            figure={
+                'data': traces,
+                'layout': {
+                    'height': 300,
+                    'xaxis': {
+                        'type': 'category',
+                        'categoryorder': 'category ascending',
+                    },
+                    'yaxis': {'type': data_type},
+                    'title': item,
+                },
+            },
+            config={'displayModeBar': False},
+        )
 
         graphs.append(graph)
 
@@ -502,10 +519,10 @@ def collect_income_statement_data(companies, period, income_statement, api_key):
     if (not companies or companies is None) or income_statement is None:
         return None
 
-    income_statement_data = {}
-    for company in companies:
-        income_statement_data[company] = fa.income_statement(company, api_key, period=period).to_dict()
-
+    income_statement_data = {
+        company: fa.income_statement(company, api_key, period=period).to_dict()
+        for company in companies
+    }
     return json.dumps(income_statement_data)
 
 
@@ -532,17 +549,21 @@ def display_income_statement_graphs(companies, data_type, income_statement_data,
             traces.append(scatter)
 
         graph = dcc.Graph(
-            id='graph-{}'.format(item),
-            figure={'data': traces,
-                    'layout': {
-                        'height': 300,
-                        'xaxis': {
-                            'type': 'category',
-                            'categoryorder': 'category ascending'},
-                        'yaxis': {
-                            'type': data_type},
-                        'title': item}},
-            config={'displayModeBar': False})
+            id=f'graph-{item}',
+            figure={
+                'data': traces,
+                'layout': {
+                    'height': 300,
+                    'xaxis': {
+                        'type': 'category',
+                        'categoryorder': 'category ascending',
+                    },
+                    'yaxis': {'type': data_type},
+                    'title': item,
+                },
+            },
+            config={'displayModeBar': False},
+        )
 
         graphs.append(graph)
 
@@ -559,10 +580,12 @@ def collect_cash_flow_statement_data(companies, period, cash_flow_statement, api
     if (not companies or companies is None) or cash_flow_statement is None:
         return None
 
-    cash_flow_statement_data = {}
-    for company in companies:
-        cash_flow_statement_data[company] = fa.cash_flow_statement(company, api_key, period=period).to_dict()
-
+    cash_flow_statement_data = {
+        company: fa.cash_flow_statement(
+            company, api_key, period=period
+        ).to_dict()
+        for company in companies
+    }
     return json.dumps(cash_flow_statement_data)
 
 
@@ -589,17 +612,21 @@ def display_cash_flow_statement_graphs(companies, data_type, cash_flow_statement
             traces.append(scatter)
 
         graph = dcc.Graph(
-            id='graph-{}'.format(item),
-            figure={'data': traces,
-                    'layout': {
-                        'height': 300,
-                        'xaxis': {
-                            'type': 'category',
-                            'categoryorder': 'category ascending'},
-                        'yaxis': {
-                            'type': data_type},
-                        'title': item}},
-            config={'displayModeBar': False})
+            id=f'graph-{item}',
+            figure={
+                'data': traces,
+                'layout': {
+                    'height': 300,
+                    'xaxis': {
+                        'type': 'category',
+                        'categoryorder': 'category ascending',
+                    },
+                    'yaxis': {'type': data_type},
+                    'title': item,
+                },
+            },
+            config={'displayModeBar': False},
+        )
 
         graphs.append(graph)
 
@@ -616,11 +643,12 @@ def collect_financial_statement_growth_data(companies, period, financial_stateme
     if (not companies or companies is None) or financial_statement_growth is None:
         return None
 
-    financial_statement_growth_data = {}
-    for company in companies:
-        financial_statement_growth_data[company] = fa.financial_statement_growth(company, api_key,
-                                                                                 period=period).to_dict()
-
+    financial_statement_growth_data = {
+        company: fa.financial_statement_growth(
+            company, api_key, period=period
+        ).to_dict()
+        for company in companies
+    }
     return json.dumps(financial_statement_growth_data)
 
 
@@ -647,17 +675,21 @@ def display_financial_statement_growth_graphs(companies, data_type, financial_st
             traces.append(scatter)
 
         graph = dcc.Graph(
-            id='graph-{}'.format(item),
-            figure={'data': traces,
-                    'layout': {
-                        'height': 300,
-                        'xaxis': {
-                            'type': 'category',
-                            'categoryorder': 'category ascending'},
-                        'yaxis': {
-                            'type': data_type},
-                        'title': item}},
-            config={'displayModeBar': False})
+            id=f'graph-{item}',
+            figure={
+                'data': traces,
+                'layout': {
+                    'height': 300,
+                    'xaxis': {
+                        'type': 'category',
+                        'categoryorder': 'category ascending',
+                    },
+                    'yaxis': {'type': data_type},
+                    'title': item,
+                },
+            },
+            config={'displayModeBar': False},
+        )
 
         graphs.append(graph)
 

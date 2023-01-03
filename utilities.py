@@ -1,15 +1,14 @@
 import json
 
 def create_drop_down_options(json_file, dictionary=True):
-    with open("data/" + json_file, "r") as read_file:
+    with open(f"data/{json_file}", "r") as read_file:
         data = json.load(read_file)
 
     output = []
-    if dictionary is True:
-        for item in data:
+    for item in data:
+        if dictionary is True:
             output.append({'label': item, 'value': data[item]})
-    else:
-        for item in data:
+        else:
             output.append({'label': item, 'value': item})
 
     return output
